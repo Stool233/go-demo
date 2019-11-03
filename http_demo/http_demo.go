@@ -20,11 +20,22 @@ const (
 	SYNONYM    DictType = 2
 )
 
-func StartServer() {
+type Config struct {
+	RemoteUrl         string
+	Port              int16
+	SplitDictFilePath string
+	SplitDictFileName string
+	StopWordFilePath  string
+	StopWordFileName  string
+	SynonymFilePath   string
+	SynonymFileName   string
+}
+
+func StartServer(cfg *Config) {
 	m := func(ctx *fasthttp.RequestCtx) {
 		switch string(ctx.Path()) {
 		case "/syncDictionaries":
-			dictionaryHandler(ctx)
+			dictionaryHandler(ctx, cfg)
 		default:
 			ctx.Error("not found", fasthttp.StatusNotFound)
 		}
@@ -35,17 +46,17 @@ func StartServer() {
 	}
 }
 
-func dictionaryHandler(ctx *fasthttp.RequestCtx) {
-	GetDictionaries()
+func dictionaryHandler(ctx *fasthttp.RequestCtx, cfg *Config) {
+	GetDictionaries(cfg)
 	ctx.SetContentType("text/plain; charset=utf8")
 	ctx.SetBody([]byte("ok"))
 	ctx.SetStatusCode(fasthttp.StatusOK)
 }
 
-func GetDictionaries() {
+func GetDictionaries(cfg *Config) {
 
 	// http 获取远程词库
-	url := "http://dev.api.tinya.huya.com:8080/dictionary/all"
+	url := cfg.RemoteUrl
 	resp := new(Result)
 	e := get(url, resp)
 	if e != nil {
@@ -87,14 +98,14 @@ func GetDictionaries() {
 		}
 	}
 
-	write2File("./tmp/splitDicts", strings.Join(splitDicts, "\n"))
-	write2File("./tmp/stopword", strings.Join(stopwordDicts, "\n"))
-	write2File("./tmp/synonym", strings.Join(synonymDicts, "\n"))
+	write2File("./tmp/"+cfg.SplitDictFileName, strings.Join(splitDicts, "\n"))
+	write2File("./tmp/"+cfg.StopWordFileName, strings.Join(stopwordDicts, "\n"))
+	write2File("./tmp/"+cfg.SynonymFileName, strings.Join(synonymDicts, "\n"))
 
 	// 复制到原文件
-	CopyFile("./splitDicts", "./tmp/splitDicts")
-	CopyFile("./stopword", "./tmp/stopword")
-	CopyFile("./synonym", "./tmp/synonym")
+	CopyFile(cfg.SplitDictFilePath, "./tmp/"+cfg.SplitDictFileName)
+	CopyFile(cfg.StopWordFilePath, "./tmp/"+cfg.StopWordFileName)
+	CopyFile(cfg.SynonymFilePath, "./tmp/"+cfg.SynonymFileName)
 }
 
 func CopyFile(dst string, src string) (written int64, err error) {

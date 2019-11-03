@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+var cfg = new(http_demo.Config)
+
 var rootCmd = &cobra.Command{
 	Use:               "dictionarySyncService",
 	Short:             "dictionarySyncService",
@@ -18,8 +20,27 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+func init() {
+	initFlags()
+}
+
+func initFlags() {
+	flagSet := rootCmd.Flags()
+	// url & output
+	flagSet.StringVarP(&cfg.RemoteUrl, "remoteUrl", "u", "http://dev.api.tinya.huya.com:8080/dictionary/all", "")
+	flagSet.Int16VarP(&cfg.Port, "port", "p", 10080, "")
+
+	flagSet.StringVarP(&cfg.SplitDictFilePath, "splitDictFilePath", "", "./splitDicts", "")
+	flagSet.StringVarP(&cfg.StopWordFilePath, "stopWordFilePath", "", "./stopword", "")
+	flagSet.StringVarP(&cfg.SynonymFilePath, "synonymFilePath", "", "./synonym", "")
+
+	flagSet.StringVarP(&cfg.SplitDictFileName, "splitDictFileName", "", "splitDicts", "")
+	flagSet.StringVarP(&cfg.StopWordFileName, "stopWordFileName", "", "stopword", "")
+	flagSet.StringVarP(&cfg.SynonymFileName, "synonymFileName", "", "synonym", "")
+}
+
 func run() error {
-	http_demo.StartServer()
+	http_demo.StartServer(cfg)
 	cron.StartCron()
 	return nil
 }
