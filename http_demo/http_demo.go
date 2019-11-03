@@ -3,6 +3,7 @@ package http_demo
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"log"
@@ -81,9 +82,9 @@ func GetDictionaries(cfg *Config) {
 		}
 	}
 
-	fmt.Println(splitDicts)
-	fmt.Println(stopwordDicts)
-	fmt.Println(synonymDicts)
+	logrus.Info(splitDicts)
+	logrus.Info(stopwordDicts)
+	logrus.Info(synonymDicts)
 
 	// 转化格式后写到文件里
 	isExist, err := PathExists("./tmp")
@@ -93,7 +94,7 @@ func GetDictionaries(cfg *Config) {
 	if !isExist {
 		err := os.MkdirAll("./tmp", os.ModePerm)
 		if err != nil {
-			fmt.Println(err)
+			logrus.Error(err)
 			return
 		}
 	}
